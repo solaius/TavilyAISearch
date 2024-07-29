@@ -18,14 +18,15 @@ This project is a demonstration of a search and summarization application using 
 ## Installation
 
 1. Clone the repository:
-
    ```sh
    git clone https://github.com/solaius/TavilyAISearch.git
    cd TavilyAISearch
 2. Virt Environment:
+   ```sh
    python -m venv env
    env/scripts/acvitate
 3. Install dependencies:
+   ```sh
    python.exe -m pip install --upgrade pip
    pip install -r requirements.txt
    streamlit run app.py
