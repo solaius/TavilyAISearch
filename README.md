@@ -29,6 +29,10 @@ This project is a demonstration of a search and summarization application using 
    ```sh
    python.exe -m pip install --upgrade pip
    pip install -r requirements.txt
+4. Add Environment Varaiable in .env file
+   ```sh
+   Add TAVILY_API_KEY - https://app.tavily.com/home
+   Add OPENAI_API_KEY - https://platform.openai.com/api-keys
 4. Run app:
    ```sh
    streamlit run app.py

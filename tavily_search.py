@@ -7,7 +7,7 @@ load_dotenv()
 
 # Access the Tavily API key
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-TAVILY_API_ENDPOINT = "https://api.tavily.com/search"
+TAVILY_API_ENDPOINT = os.getenv("TAVILY_API_ENDPOINT")
 
 def search_tavily(query, top_k=5):
     headers = {
