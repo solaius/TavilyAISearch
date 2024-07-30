@@ -1,8 +1,10 @@
 import os
+import httpx
 from dotenv import load_dotenv
 from tavily_search import search_tavily
 from langchain.prompts import PromptTemplate
 from langchain_openai import OpenAI
+from langchain_community.llms import VLLMOpenAI
 from langchain_core.runnables import RunnableSequence
 
 # Load environment variables from the .env file
@@ -11,25 +13,43 @@ load_dotenv()
 # Access the OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Access VLLM Information
+VLLM_URL = str(os.getenv("VLLM_URL")) + "/v1"
+VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
+
+
 # Define your LangChain prompt template
 template = """
 Here are the top search results for "{query}":
 {results}
 
-Create detailed summaries of the key points from these results.
+Summarize the key points from these results.
 """
 
 prompt = PromptTemplate(template=template, input_variables=["query", "results"])
 
-# Create your LangChain model
-llm = OpenAI(api_key=OPENAI_API_KEY)
-
-# Define the LangChain chain
-def summarize_search_results(query):
-    results = search_tavily(query, top_k=5)  # Ensure to pull more detailed results
-
-    formatted_results = "\n".join([f"{idx + 1}. {result['title']}: {result.get('content', 'No content')}" for idx, result in enumerate(results)])
+def summarize_search_results(query, model_choice):
+    results = search_tavily(query)
+    formatted_results = "\n".join([f"{idx + 1}. {result['title']}: {result['content']}" for idx, result in enumerate(results)])
     inputs = {"query": query, "results": formatted_results}
+    
+    # Select the model based on the user's choice
+    if model_choice == "OpenAI (Hosted)":
+        llm = OpenAI(api_key=OPENAI_API_KEY)
+    elif model_choice == "Mistral (vLLM)":
+        llm = VLLMOpenAI(
+                openai_api_key="EMPTY",
+                openai_api_base=VLLM_URL,
+                model_name=VLLM_MODEL_NAME,
+                temperature=0,
+                verbose=True,
+                streaming=False,
+                max_tokens=6000,
+                async_client=httpx.AsyncClient(verify=False),
+                http_client=httpx.Client(verify=False)
+        )
+
+
     chain = RunnableSequence(prompt, llm)
     summary = chain.invoke(inputs)
     return results, summary
@@ -37,15 +57,6 @@ def summarize_search_results(query):
 # Example usage
 if __name__ == "__main__":
     query = "What is artificial intelligence?"
-    results, summary = summarize_search_results(query)
-    print("Search Results:")
-    for idx, result in enumerate(results):
-        print(f"{idx + 1}. {result['title']}: {result.get('content', 'No content')}")
-        if 'answer' in result:
-            print(f"Answer: {result['answer']}")
-        if 'image' in result:
-            print(f"Image: {result['image']}")
-        if 'raw_content' in result:
-            print(f"Raw Content: {result['raw_content']}\n")
-    print("Summary:")
+    model_choice = "OpenAI (Hosted)"
+    results, summary = summarize_search_results(query, model_choice)
     print(summary)
