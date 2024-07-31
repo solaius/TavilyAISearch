@@ -20,10 +20,11 @@ VLLM_MODEL_NAME = os.getenv("VLLM_MODEL_NAME")
 
 # Define your LangChain prompt template
 template = """
-Here are the top search results for "{query}":
+User Query: "{query}"/n
+Search Results:
 {results}
 
-Summarize the key points from these results.
+Create an exhaustive, detailed and fully formatted summary of the search results.
 """
 
 prompt = PromptTemplate(template=template, input_variables=["query", "results"])
